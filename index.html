@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>SentinelAI — Text Intelligence Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">
+    <div class="logo-dot"></div>
+    SentinelAI
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active">Analyze</button>
+    <button class="nav-tab">Batch</button>
+    <button class="nav-tab">Compare</button>
+    <button class="nav-tab">Dashboard</button>
+  </div>
+  <div class="status-badge">
+    <div class="status-dot"></div>
+    BERT MODEL ACTIVE
+  </div>
+</nav>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- ===================== PAGE: ANALYZE ===================== -->
+<div class="page active" id="page-analyze">
+  <div class="hero">
+    <div class="hero-label">// Real-time NLP Analysis</div>
+    <h1>Detect <em>sentiment,</em><br>toxicity & bias.</h1>
+    <p class="hero-sub">Powered by a bias-mitigated DistilBERT model trained on the Jigsaw dataset with fairness-aware sample weighting.</p>
+  </div>
+
+  <div class="main-grid">
+    <!-- Left: Input -->
+    <div>
+      <div class="mode-tabs" style="margin-bottom:16px;">
+        <button class="mode-tab active" onclick="setMode(this)">Single Text</button>
+      </div>
+
+      <div class="input-panel">
+        <div class="panel-header">
+          <span class="panel-title">Input Text</span>
+          <span class="char-count" id="char-count">0 / 1000</span>
+        </div>
+        <textarea class="text-area" id="main-input" placeholder="Type or paste text here to analyze toxicity and bias using the trained DistilBERT model…" maxlength="1000" oninput="updateCharCount()"></textarea>
+        <div class="input-footer">
+          <input class="label-input" id="label-input" placeholder="Label (optional — e.g. tweet, review…)"/>
+          <button class="btn-secondary" onclick="clearAll()">Clear</button>
+          <button class="btn-analyze" id="btn-analyze" onclick="analyzeText()">Analyze →</button>
+        </div>
+      </div>
+
+      <!-- Loading -->
+      <div class="loading-state" id="loading-state">
+        <div class="spinner"></div>
+        <div class="loading-text" id="loading-text">Running models…</div>
+      </div>
+
+      <!-- Results -->
+      <div id="results-area" style="margin-top:24px;"></div>
+    </div>
+
+    <!-- Right: Sidebar -->
+    <div class="results-panel" id="sidebar-results">
+      <div class="empty-state" id="empty-state">
+        <div class="empty-icon">⚡</div>
+        <div class="empty-text">Results will appear here after analysis</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== PAGE: BATCH ===================== -->
+<div class="page" id="page-batch">
+  <div class="dashboard">
+    <div class="dash-header">
+      <div>
+        <div class="hero-label">// Batch Processing</div>
+        <div class="dash-title">Bulk Analysis</div>
+        <div class="dash-sub">Analyze up to 50 texts at once — one per line</div>
+      </div>
+      <button class="btn-analyze" onclick="runBatch()">Run Batch →</button>
+    </div>
+
+    <textarea class="batch-area" id="batch-input" placeholder="Enter texts here, one per line:&#10;&#10;The product was absolutely fantastic!&#10;This is a terrible waste of time.&#10;I hate everything about this company.&#10;Great service, would recommend."></textarea>
+
+    <div id="batch-loading" style="display:none; text-align:center; padding:40px;">
+      <div class="spinner"></div>
+      <div class="loading-text">Processing batch…</div>
+    </div>
+
+    <div id="batch-summary"></div>
+    <div class="batch-results" id="batch-results"></div>
+  </div>
+</div>
+
+<!-- ===================== PAGE: COMPARE ===================== -->
+<div class="page" id="page-compare">
+  <div class="dashboard">
+    <div class="dash-header">
+      <div>
+        <div class="hero-label">// Side-by-Side</div>
+        <div class="dash-title">Compare Texts</div>
+        <div class="dash-sub">Analyze two texts and see how they differ</div>
+      </div>
+      <button class="btn-analyze" onclick="runCompare()">Compare →</button>
+    </div>
+
+    <div class="compare-grid">
+      <div>
+        <div class="section-title" style="margin-bottom:8px;">Text A</div>
+        <textarea class="batch-area" id="compare-a" placeholder="Enter first text…" style="min-height:160px;"></textarea>
+      </div>
+      <div>
+        <div class="section-title" style="margin-bottom:8px;">Text B</div>
+        <textarea class="batch-area" id="compare-b" placeholder="Enter second text…" style="min-height:160px;"></textarea>
+      </div>
+    </div>
+
+    <div id="compare-loading" style="display:none; text-align:center; padding:40px;">
+      <div class="spinner"></div>
+      <div class="loading-text">Comparing…</div>
+    </div>
+
+    <div id="compare-results" style="margin-top:32px;"></div>
+  </div>
+</div>
+
+<!-- ===================== PAGE: DASHBOARD ===================== -->
+<div class="page" id="page-dashboard">
+  <div class="dashboard">
+    <div class="dash-header">
+      <div>
+        <div class="hero-label">// Analytics</div>
+        <div class="dash-title">Dashboard</div>
+        <div class="dash-sub" id="dash-sub-text">Loading your analysis history…</div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn-secondary" onclick="exportCSV()">↓ Export CSV</button>
+        <button class="btn-analyze" onclick="loadDashboard()">Refresh ↺</button>
+      </div>
+    </div>
+
+    <div class="stats-grid" id="stats-grid">
+      <div class="stat-card skeleton" style="height:100px;"></div>
+      <div class="stat-card skeleton" style="height:100px;"></div>
+      <div class="stat-card skeleton" style="height:100px;"></div>
+      <div class="stat-card skeleton" style="height:100px;"></div>
+    </div>
+
+    <div class="history-section">
+      <div class="history-controls">
+        <div class="section-title" style="margin-bottom:0;">History</div>
+        <select class="filter-select" id="risk-filter" onchange="loadHistory()">
+          <option value="">All Risk Levels</option>
+          <option value="LOW">Low Risk</option>
+          <option value="MEDIUM">Medium Risk</option>
+          <option value="HIGH">High Risk</option>
+          <option value="CRITICAL">Critical</option>
+        </select>
+        <div style="margin-left:auto;" class="page-info" id="page-info-text"></div>
+      </div>
+
+      <div class="history-table" id="history-table">
+        <div class="loading-state visible" style="display:block; padding:40px; text-align:center;">
+          <div class="spinner"></div>
+        </div>
+      </div>
+
+      <div class="pagination">
+        <button class="page-btn" id="btn-prev" onclick="changePage(-1)" disabled>← Prev</button>
+        <button class="page-btn" id="btn-next" onclick="changePage(1)">Next →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
